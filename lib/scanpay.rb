@@ -16,7 +16,6 @@ module Scanpay
 
     def initialize(apikey)
       @httpclient = HTTPClient.new
-      @httpclient.ssl_config.add_trust_ca('/Users/cblach/Desktop/truststore/*.test.scanpay.dk.pem')      
       @apikey = apikey
     end
     
