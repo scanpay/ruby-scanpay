@@ -1,7 +1,6 @@
 require 'net/http'
 require 'base64'
 require 'json'
-require 'digest'
 require 'openssl'
 require 'httpclient'
 
@@ -16,9 +15,10 @@ module Scanpay
 
     def initialize(apikey)
       @httpclient = HTTPClient.new
+      @httpclient.ssl_config.set_default_paths
       @apikey = apikey
     end
-    
+
     def consttime_streq(a, b)
       return false if a.bytesize != b.bytesize
       neq = 0
@@ -36,9 +36,9 @@ module Scanpay
       }
       res = nil
       if data == nil
-        res = @httpclient.get('https://api.test.scanpay.dk/v1' + uri, nil, header)
+        res = @httpclient.get('https://api.scanpay.dk/v1' + uri, nil, header)
       else
-        res = @httpclient.post('https://api.test.scanpay.dk/v1' + uri, data.to_json, header)
+        res = @httpclient.post('https://api.scanpay.dk/v1' + uri, data.to_json, header)
       end
       raise Error, 'Invalid API-key' if res.code == 403
       raise Error, 'Unexpected http response code: ' + res.code.to_s unless res.code == 200
