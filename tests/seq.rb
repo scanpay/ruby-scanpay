@@ -1,4 +1,4 @@
-require '../lib/scanpay'
+require_relative '../lib/scanpay'
 
 client = Scanpay::Client.new(' API KEY ')
 seqobj = client.seq(3)

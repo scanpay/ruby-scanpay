@@ -25,7 +25,7 @@ module Scanpay
       a.bytes.each_index { |i|
         neq |= a.bytes[i] ^ b.bytes[i];
       }
-      neq == 0
+      neq === 0
     end
 
     def request(uri, data, opts)
@@ -35,22 +35,20 @@ module Scanpay
         'Content-Type'  => 'application/json',
       }
       res = nil
-      if data == nil
+      if data === nil
         res = @httpclient.get('https://api.scanpay.dk/v1' + uri, nil, header)
       else
         res = @httpclient.post('https://api.scanpay.dk/v1' + uri, data.to_json, header)
       end
-      raise Error, 'Invalid API-key' if res.code == 403
-      raise Error, 'Unexpected http response code: ' + res.code.to_s unless res.code == 200
+      raise Error, res.body.lines.first.chomp unless res.code === 200
       resobj = JSON.parse(res.body)
-      raise Error, 'Received error from Scanpay: ' + resobj['error'] if resobj['error'] != nil
       resobj
     end
 
     def newURL(data)
       resobj = request('/new', data, nil)
       if !resobj.has_key? 'url'
-        raise Error, 'Missing url field'
+        raise Error, 'Missing url field from response'
       end
       resobj['url']
     end
@@ -64,7 +62,7 @@ module Scanpay
       mysig = Base64.strict_encode64(myrawsig)
       raise Error, 'invalid signature' unless consttime_streq(mysig, signature || '')
       resobj = JSON.parse(body)
-      raise Error, 'missing fields' unless [resobj['shopid'], resobj['seq']].all? { |i| i.is_a?(Integer) }
+      raise Error, 'missing fields from response' unless [resobj['shopid'], resobj['seq']].all? { |i| i.is_a?(Integer) }
       resobj
     end
     private :request, :consttime_streq
