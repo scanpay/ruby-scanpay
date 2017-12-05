@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.files       = ['lib/scanpay.rb']
   s.require_paths = ['lib']
   s.required_ruby_version = '>= 2.0.0'
-  s.add_runtime_dependency('httpclient', '>= 2.6')
+  s.add_runtime_dependency('httpclient', '~> 2.6')
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/scanpaydk/ruby-scanpay/issues",
     "documentation_uri" => "https://docs.scanpay.dk",
