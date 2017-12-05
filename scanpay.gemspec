@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'scanpay'
-  s.version     = '0.1.0'
+  s.version     = '1.0.0'
   s.summary     = "Ruby bindings for the Scanpay API"
   s.description = "Accept payments with the Scanpay payment gateway. See https://scanpay.dk for more details."
   s.author      = 'Scanpay'
