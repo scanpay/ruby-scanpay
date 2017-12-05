@@ -1,11 +1,13 @@
-require 'webrick'
+# help@scanpay.dk || irc.scanpay.dk:6697 || scanpay.dk/slack
 require_relative '../lib/scanpay'
+require 'webrick'
 
-client = Scanpay::Client.new(' API KEY ')
+$apikey = 'api key';
+scanpay = Scanpay::Client.new($apikey)
 
 server = WEBrick::HTTPServer.new :Port => 8080
 server.mount_proc '/' do |req, res|
-    ping = client.handlePing(req.body(), req.header['x-signature'][0])
+    ping = scanpay.handlePing(req.body(), req.header['x-signature'][0])
     puts 'Succesfully received ping: shopid=' + ping['shopid'].to_s + ', seq=' + ping['seq'].to_s
 end
 

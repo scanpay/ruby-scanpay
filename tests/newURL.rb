@@ -1,7 +1,20 @@
+# help@scanpay.dk || irc.scanpay.dk:6697 || scanpay.dk/slack
 require_relative '../lib/scanpay'
+require 'base64'
 
-client = Scanpay::Client.new(' API KEY ')
-data = {
+$apikey = '1153:YHZIUGQw6NkCIYa3mG6CWcgShnl13xuI7ODFUYuMy0j790Q6ThwBEjxfWFXwJZ0W';
+scanpay = Scanpay::Client.new($apikey)
+
+options = {
+    'hostname' => 'api.test.scanpay.dk',
+    'headers' => {
+        'Authorization' => 'Basic ' + Base64.strict_encode64($apikey),
+        'X-Cardholder-IP' => '192.168.1.1',
+    },
+    'debug' => true,
+}
+
+order = {
     'orderid'    => 'a766409',
     'language'   => 'da',
     'successurl' => 'https://insertyoursuccesspage.dk',
@@ -9,12 +22,12 @@ data = {
         {
             'name'     => 'Pink Floyd: The Dark Side Of The Moon',
             'quantity' => 2,
-            'price'    => '99.99 DKK',
+            'total'    => '199.99 DKK',
             'sku'      => 'fadf23',
         }, {
             'name'     => '巨人宏偉的帽子',
-            'quantity' => 2,
-            'price'    => '420 DKK',
+            'quantity' => 1,
+            'total'    => '420 DKK',
             'sku'      => '124',
         },
     ],
@@ -43,4 +56,5 @@ data = {
         'country' => 'DK',
     },
 }
-puts "Generated payment url: #{client.newURL(data)}"
+
+puts "Generated payment url: #{scanpay.newURL(order, options)}"
