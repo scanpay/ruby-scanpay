@@ -5,8 +5,6 @@ require 'openssl'
 require 'httpclient' # Thread-Safe. Consider https://github.com/httprb/http
 
 module Scanpay
-  class Error < StandardError; end
-
   class Client
     @https
     @headers
@@ -47,14 +45,14 @@ module Scanpay
             @https.post('https://' + hostname + path, data.to_json, headers)
 
       return JSON.parse(res.body) if res.code == 200
-      raise Error, res.reason
+      raise res.reason
     end
 
     # newURL: Create a new payment link
     def newURL(data, opts={})
       o = request('/v1/new', data, opts)
       return o['url'] if o['url'].is_a? String
-      raise Error, 'invalid response from server'
+      raise 'invalid response from server'
     end
 
     # seq: Get array of changes since the reqested sequence number
@@ -64,18 +62,18 @@ module Scanpay
       end
       o = request('/v1/seq/' + num.to_s, nil, opts)
       return o if (o['changes'].kind_of? Array) && (o['seq'].is_a? Integer)
-      raise Error, 'invalid response from server'
+      raise 'invalid response from server'
     end
 
     # handlePing: Convert body to JSON and validate signature
     def handlePing(body='', signature='')
       digest = OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @apikey, body)
       is_valid = timesafe_equals(Base64.strict_encode64(digest), signature)
-      raise Error, 'invalid signature' unless is_valid
+      raise 'invalid signature' unless is_valid
 
       o = JSON.parse(body)
       return o if (o['shopid'].is_a? Integer) && (o['seq'].is_a? Integer)
-      raise Error, 'invalid ping'
+      raise 'invalid ping'
     end
 
     private :request
