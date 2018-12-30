@@ -1,4 +1,4 @@
-# Scanpay Ruby Client
+# Scanpay ruby client
 
 Ruby client library for the Scanpay API. You can always e-mail us at [help@scanpay.dk](mailto:help@scanpay.dk) or chat with us on `irc.scanpay.dk:6697` or `#scanpay` at Freenode ([webchat](https://webchat.freenode.net?randomnick=1&channels=scanpay&prompt=1))
 
@@ -25,13 +25,13 @@ require_relative 'lib/scanpay'
 scanpay = Scanpay::Client.new('API key')
 ```
 
-## Methods
+## Usage
 
-Please note that some methods accept an optional per-request `options` hash. You can read more about this [here](#options).
+The API documentation is available [here](https://docs.scanpay.dk/). Most methods accept an optional per-request object with [options](#options), here referred to as `options`.
 
-### newURL(Object, options)
+#### newURL(Object, options)
 
-Create a [payment link](https://docs.scanpay.dk/payment-link#request-fields) by passing the order details through `newURL`. Strictly speaking, only the following data is required, but we strongly encourage you to use the entire spec ([example](tests/newURL.rb)).
+Create a link to our hosted payment window ([docs](https://docs.scanpay.dk/payment-link) | [example](tests/newURL.rb)).
 
 ```ruby
 order = {
@@ -40,21 +40,21 @@ order = {
 puts "Payment url: #{scanpay.newURL(order, options)}"
 ```
 
-### handlePing(String, String)
+#### seq(Integer, options)
 
-Securely and efficiently validate [pings](https://docs.scanpay.dk/synchronization). This method accepts two arguments from the received ping request, the HTTP message body and the `X-Signature` HTTP header. The return value is a JSON hash ([example](tests/handlePing.rb)).
-
-```ruby
-json = scanpay.handlePing(body, signature)
-```
-
-### seq(Integer, options)
-
-Make a [sequence request](https://docs.scanpay.dk/synchronization#seq-request) to get a hash with a number of changes since the supplied sequence number ([example](tests/seq.rb)).
+Make a sequence request to get a hash with changes after a specified sequence number ([docs](https://docs.scanpay.dk/synchronization#sequence-request) | [example](tests/seq.rb)).
 
 ```ruby
 localSeq = 921;
 seqobj = scanpay.seq(localSeq, options)
+```
+
+#### handlePing(String, String)
+
+Handle and validate synchronization pings. The method accepts two arguments, the body of the received ping and the `X-Signature` HTTP header. The method returns a hash ([docs](https://docs.scanpay.dk/synchronization#ping-service) | [example](tests/handlePing.rb)).
+
+```ruby
+json = scanpay.handlePing(body, signature)
 ```
 
 ## Options
