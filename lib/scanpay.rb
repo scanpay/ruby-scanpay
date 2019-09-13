@@ -2,9 +2,13 @@
 require 'base64'
 require 'json'
 require 'openssl'
+require 'securerandom'
 require 'httpclient' # Thread-Safe. Consider https://github.com/httprb/http
 
 module Scanpay
+  class IdempotentResponseException < StandardError
+  end
+
   class Client
     @https
     @headers
@@ -17,7 +21,7 @@ module Scanpay
       @apikey = apikey
       @headers = {
         'authorization' => 'basic ' + Base64.strict_encode64(apikey),
-        'x-sdk' => 'Ruby-1.0.0/' + RUBY_VERSION,
+        'x-sdk' => 'Ruby-1.1.0/' + RUBY_VERSION,
         'content-type'  => 'application/json',
       }
     end
@@ -29,6 +33,10 @@ module Scanpay
         neq |= a.bytes[i] ^ b.bytes[i];
       }
       return neq === 0
+    end
+
+    def generateIdempotencyKey()
+      return SecureRandom.base64(32).delete('=')
     end
 
     def request(path, data, opts={})
@@ -43,9 +51,25 @@ module Scanpay
       end
       res = (data === nil) ? @https.get('https://' + hostname + path, nil, headers) :
             @https.post('https://' + hostname + path, data.to_json, headers)
-
-      return JSON.parse(res.body) if res.code == 200
-      raise res.reason
+      if headers['idempotency-key']
+        idem = res.header['idempotency-status'][0]
+        case idem
+        when 'OK'
+          # Do nothing
+        when 'ERROR'
+          raise "server failed to provide idempotency: #{res.reason}"
+        when ''
+          raise "missing response idempotency status: #{res.reason}"
+        else
+          raise "unknown idempotency status '#{idem}': #{res.reason}"
+        end
+      end
+      raise IdempotentResponseException, res.reason if res.code != 200
+      begin
+        return JSON.parse(res.body)
+      rescue JSON::ParserError => e
+        raise IdempotentResponseException, "invalid json response: #{e.message}"
+      end
     end
 
     # newURL: Create a new payment link
@@ -74,6 +98,22 @@ module Scanpay
       o = JSON.parse(body)
       return o if (o['shopid'].is_a? Integer) && (o['seq'].is_a? Integer)
       raise 'invalid ping'
+    end
+
+    def charge(subid, data, opts={})
+      if !subid.is_a? Integer
+        raise ArgumentError, 'first argument is not an integer'
+      end
+      return request("/v1/subscribers/#{subid}/charge", data, opts);
+    end
+
+    def renew(subid, data, opts={})
+      if !subid.is_a? Integer
+        raise ArgumentError, 'first argument is not an integer'
+      end
+      o = request("/v1/subscribers/#{subid}/renew", data, opts);
+      return o['url'] if o['url'].is_a? String
+      raise 'invalid response from server'
     end
 
     private :request
