@@ -1,4 +1,7 @@
-# help@scanpay.dk || irc.scanpay.dk:6697 || scanpay.dk/slack
+# Docs: https://docs.scanpay.dk
+# help@scanpay.dk
+# irc.libera.chat:6697 #scanpay
+
 require_relative '../lib/scanpay'
 require 'webrick'
 
