@@ -82,6 +82,17 @@ module Scanpay
       raise 'invalid response from server'
     end
 
+    # handlePing: Convert body to JSON and validate signature
+    def handlePing(body='', signature='')
+      digest = OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @apikey, body)
+      is_valid = timesafe_equals(Base64.strict_encode64(digest), signature)
+      raise 'invalid signature' unless is_valid
+
+      o = JSON.parse(body)
+      return o if (o['shopid'].is_a? Integer) && (o['seq'].is_a? Integer)
+      raise 'invalid ping'
+    end
+
     # seq: Get array of changes since the reqested sequence number
     def seq(num, opts={})
       if !num.is_a? Integer
@@ -92,15 +103,25 @@ module Scanpay
       raise 'invalid response from server'
     end
 
-    # handlePing: Convert body to JSON and validate signature
-    def handlePing(body='', signature='')
-      digest = OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @apikey, body)
-      is_valid = timesafe_equals(Base64.strict_encode64(digest), signature)
-      raise 'invalid signature' unless is_valid
+    def capture(trnid, data, opts={})
+      if !trnid.is_a? Integer
+        raise ArgumentError, 'first argument is not an integer'
+      end
+      request("/v1/transactions/#{trnid}/capture", data, opts);
+    end
 
-      o = JSON.parse(body)
-      return o if (o['shopid'].is_a? Integer) && (o['seq'].is_a? Integer)
-      raise 'invalid ping'
+    def refund(trnid, data, opts={})
+      if !trnid.is_a? Integer
+        raise ArgumentError, 'first argument is not an integer'
+      end
+      request("/v1/transactions/#{trnid}/refund", data, opts);
+    end
+
+    def void(trnid, data, opts={})
+      if !trnid.is_a? Integer
+        raise ArgumentError, 'first argument is not an integer'
+      end
+      request("/v1/transactions/#{trnid}/void", data, opts);
     end
 
     def charge(subid, data, opts={})
